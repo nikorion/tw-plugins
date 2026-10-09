@@ -70,6 +70,25 @@ code { color: var(--code-foreground); background: var(--code-background); border
 }
 .drag:hover { text-decoration: none; filter: brightness(1.05); }
 .drag:active { cursor: grabbing; }
+/* Drag effect: the slot keeps the button's place and shows a hollow shadow
+   while the button itself travels with the pointer (as the drag image). */
+.drag-slot { display: inline-block; position: relative; margin: 10px 0 4px; border-radius: 4px; }
+.drag-slot .drag { margin: 0; position: relative; }
+.drag-slot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.drag-slot.dragging::before { opacity: 1; }
+.drag-slot.dragging .drag { visibility: hidden; }
+.drag.landing { transition: transform 0.45s cubic-bezier(0.22, 1.25, 0.36, 1), box-shadow 0.45s ease; }
+.drag.lifted { box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
+.drag-ghost { position: fixed; top: -1000px; left: -1000px; margin: 0; pointer-events: none; }
 .hint { color: var(--muted); font-size: 0.9em; }
 ol { padding-left: 1.4em; }
 table { border-collapse: collapse; width: 100%; margin-top: 8px; }
@@ -93,7 +112,7 @@ html[lang="en"] [data-lang="en"], html[lang="fr"] [data-lang="fr"] { display: re
 <p data-lang="en">One step, once per wiki: drag this button onto your TiddlyWiki and confirm the import.</p>
 <p data-lang="fr">Une seule étape, une fois par wiki : glissez ce bouton sur votre TiddlyWiki et confirmez l'import.</p>
 
-<a class="drag" id="drag" draggable="true" href="#" title="$:/config/nikorion/PluginLibrary"><span data-lang="en">⇲ nikorion plugin library</span><span data-lang="fr">⇲ Bibliothèque de plugins nikorion</span></a>
+<div><span class="drag-slot" id="drag-slot"><a class="drag" id="drag" draggable="true" href="#" title="$:/config/nikorion/PluginLibrary"><span data-lang="en">⇲ nikorion plugin library</span><span data-lang="fr">⇲ Bibliothèque de plugins nikorion</span></a></span></div>
 <div class="hint" data-lang="en">A click does nothing: drag it into your wiki's window.</div>
 <div class="hint" data-lang="fr">Un clic ne fait rien : faites-le glisser dans la fenêtre de votre wiki.</div>
 
@@ -169,6 +188,14 @@ var PLUGINS = {{PLUGINS}};
   var drag = document.getElementById("drag");
   drag.href = dataUri;
   drag.addEventListener("click", function (e) { e.preventDefault(); });
+  // Visual: the whole button becomes the drag image, grabbed where the pointer
+  // took it; its slot shows a hollow shadow; on release it glides back from the
+  // drop point (or drops in from above when released outside this window).
+  var slot = document.getElementById("drag-slot");
+  var ghost = null, grab = {x: 0, y: 0}, last = null;
+  function track(e) {
+    if (e.clientX || e.clientY) last = {x: e.clientX, y: e.clientY};
+  }
   drag.addEventListener("dragstart", function (e) {
     var dt = e.dataTransfer;
     dt.effectAllowed = "copy";
@@ -176,6 +203,37 @@ var PLUGINS = {{PLUGINS}};
     dt.setData("text/plain", LIBRARY_TIDDLER.title);
     dt.setData("text/x-moz-url", dataUri);
     try { dt.setData("URL", dataUri); } catch (err) {}
+
+    var rect = drag.getBoundingClientRect();
+    grab = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+    last = {x: e.clientX, y: e.clientY};
+    ghost = drag.cloneNode(true);
+    ghost.removeAttribute("id");
+    ghost.classList.add("drag-ghost", "lifted");
+    ghost.style.width = rect.width + "px";
+    document.body.appendChild(ghost);
+    if (dt.setDragImage) dt.setDragImage(ghost, grab.x, grab.y);
+    // Hide the button only after the browser has captured the drag image.
+    setTimeout(function () { slot.classList.add("dragging"); }, 0);
+  });
+  drag.addEventListener("drag", track);
+  document.addEventListener("dragover", track);
+  drag.addEventListener("dragend", function (e) {
+    track(e);
+    if (ghost) { ghost.remove(); ghost = null; }
+    var rect = drag.getBoundingClientRect();
+    var inside = last && last.x > 0 && last.y > 0 && last.x < window.innerWidth && last.y < window.innerHeight;
+    var dx = inside ? last.x - grab.x - rect.left : 0;
+    var dy = inside ? last.y - grab.y - rect.top : -40;
+    drag.classList.remove("landing");
+    drag.classList.add("lifted");
+    drag.style.transform = "translate(" + dx + "px," + dy + "px)" + (inside ? "" : " scale(1.06)");
+    slot.classList.remove("dragging");
+    void drag.offsetWidth; // apply the start position before animating
+    drag.classList.add("landing");
+    drag.classList.remove("lifted");
+    drag.style.transform = "";
+    setTimeout(function () { drag.classList.remove("landing"); }, 500);
   });
 
   // Plugin list (rendered from the library's own catalogue at build time).
