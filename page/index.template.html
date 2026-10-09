@@ -62,12 +62,15 @@ code { color: var(--code-foreground); background: var(--code-background); border
   border-radius: 6px;
   /* Light diagonal shading, lit from the top left. */
   background: linear-gradient(135deg, #5fe05f 0%, #3ccf3c 40%, #2fb92f 70%, #259a25 100%);
-  color: rgba(255, 255, 255, 0.94);
+  color: #ffffff;
   font-size: 1.25em;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  /* Text pressed into the surface: dark edge above, light edge below. */
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.38), 0 1px 0 rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.02em;
+  /* 1px grey outline hugging each letter: eight 1px shadows, one per direction
+     (unlike -webkit-text-stroke, which eats into the glyphs). */
+  text-shadow:
+    1px 0 0 #6f6f6f, -1px 0 0 #6f6f6f, 0 1px 0 #6f6f6f, 0 -1px 0 #6f6f6f,
+    1px 1px 0 #6f6f6f, -1px -1px 0 #6f6f6f, 1px -1px 0 #6f6f6f, -1px 1px 0 #6f6f6f;
   /* Slight 3D thickness: top highlight, darker side edge, soft drop shadow. */
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
@@ -76,18 +79,12 @@ code { color: var(--code-foreground); background: var(--code-background); border
     0 7px 12px rgba(0, 0, 0, 0.25);
   cursor: grab;
   user-select: none;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+  transition: filter 0.15s ease;
 }
 .drag:hover { text-decoration: none; filter: brightness(1.05); }
-.drag:active {
-  cursor: grabbing;
-  transform: translateY(2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
-    0 2px 0 #1e7f1e,
-    0 4px 8px rgba(0, 0, 0, 0.25);
-}
+/* No pressed-state offset: the browser keeps :active right after a drop, and
+   the offset would make the rebuilt button jump at the end of its animation. */
+.drag:active { cursor: grabbing; }
 /* Drag effect: the slot keeps the button's place and shows a shallow hollow
    while the button itself travels with the pointer (as the drag image). On
    release the button rebuilds itself in the hollow, growing to full size. */
