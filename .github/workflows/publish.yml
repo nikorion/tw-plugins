@@ -1,0 +1,58 @@
+name: Publish the nikorion plugin library
+
+# Builds library/ (every plugin of tw-dev's plugins.json, pulled from its
+# repository's default branch) and the landing page, then publishes them to
+# https://nikorion.github.io/tw-plugins/
+# Runs on every push here, daily, and on demand (Actions → Run workflow), so a
+# plugin release appears within a day, or right away when run by hand.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: nikorion/tw-dev
+          path: .tw-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node .tw-dev/ci-plugins.cjs --all
+
+      - run: npx --yes tiddlywiki@5.4.1 library --build library
+
+      - run: node page/build.cjs .tw-dev/plugins.json
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

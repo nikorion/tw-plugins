@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nikorion — TiddlyWiki plugins</title>
+<meta name="description" content="TiddlyWiki plugins by nikorion: live demos and a plugin library to install and update them from your own wiki.">
+<style>
+/* Mirrors the look of the nikorion demo wikis: TiddlyWiki's Vanilla theme
+   with its default palette and the demos' metrics (17px / 1.5, 960px story). */
+:root {
+  --page-background: #f4f4f4;
+  --background: #ffffff;
+  --foreground: #333333;
+  --muted: #888888;
+  --very-muted: #bbbbbb;
+  --primary: #5778d8;
+  --title: #182955;
+  --code-background: #f7f7f9;
+  --code-border: #e1e1e8;
+  --code-foreground: #dd1144;
+  --table-border: #dddddd;
+  --table-header: #f0f0f0;
+  --download: #34c734;
+  --info-background: #f8f8f8;
+}
+* { box-sizing: border-box; }
+html { background: var(--page-background); }
+body {
+  margin: 0;
+  color: var(--foreground);
+  font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  word-wrap: break-word;
+}
+.page { display: flex; flex-wrap: wrap-reverse; justify-content: center; gap: 0 42px; padding: 0 16px 42px; }
+.story { width: 960px; max-width: 100%; padding-top: 42px; }
+.sidebar { width: 300px; max-width: 100%; padding-top: 52px; }
+.site-title { color: var(--title); font-size: 2.35em; font-weight: 300; line-height: 1.2; margin: 0; }
+.site-subtitle { color: var(--muted); margin: 4px 0 18px; }
+.sidebar nav a { display: block; color: var(--primary); font-weight: 600; text-decoration: none; padding: 2px 0; }
+.sidebar nav a:hover { text-decoration: underline; }
+.lang { margin-top: 18px; font-size: 0.9em; color: var(--muted); }
+.lang button { font: inherit; border: 0; background: none; padding: 0; color: var(--primary); cursor: pointer; }
+.lang button[aria-pressed="true"] { color: var(--foreground); font-weight: 600; cursor: default; }
+.tiddler {
+  background: var(--background);
+  border-radius: 2px;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+  padding: 28px 42px 42px;
+  margin-bottom: 28px;
+}
+.tiddler h2 { color: var(--title); font-size: 2.35em; font-weight: 300; line-height: 1.2; margin: 0 0 6px; }
+.subtitle { color: var(--very-muted); font-size: 0.82em; margin-bottom: 18px; }
+h3 { color: var(--title); font-weight: 600; margin: 1.4em 0 0.4em; }
+a { color: var(--primary); font-weight: 600; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { color: var(--code-foreground); background: var(--code-background); border: 1px solid var(--code-border); padding: 0 3px; border-radius: 3px; font-size: 0.87em; word-break: break-all; }
+.drag {
+  display: inline-block;
+  margin: 10px 0 4px;
+  padding: 14px 26px;
+  border-radius: 4px;
+  background: var(--download);
+  color: #ffffff;
+  font-size: 1.25em;
+  font-weight: 600;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+.drag:hover { text-decoration: none; filter: brightness(1.05); }
+.drag:active { cursor: grabbing; }
+.hint { color: var(--muted); font-size: 0.9em; }
+ol { padding-left: 1.4em; }
+table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+th, td { border: 1px solid var(--table-border); padding: 4px 8px; vertical-align: top; text-align: left; }
+th { background: var(--table-header); }
+td.version { white-space: nowrap; color: var(--muted); }
+td:first-child { white-space: nowrap; }
+.note { background: var(--info-background); border-left: 4px solid var(--very-muted); padding: 8px 14px; margin-top: 16px; }
+[data-lang] { display: none; }
+html[lang="en"] [data-lang="en"], html[lang="fr"] [data-lang="fr"] { display: revert; }
+</style>
+</head>
+<body>
+<div class="page">
+<main class="story">
+
+<section class="tiddler" id="install">
+<h2><span data-lang="en">Install the nikorion plugin library</span><span data-lang="fr">Installer la bibliothèque de plugins nikorion</span></h2>
+<div class="subtitle">nikorion · <span data-lang="en">updated</span><span data-lang="fr">mise à jour</span> {{BUILT}}</div>
+
+<p data-lang="en">One step, once per wiki: drag this button onto your TiddlyWiki and confirm the import.</p>
+<p data-lang="fr">Une seule étape, une fois par wiki : glissez ce bouton sur votre TiddlyWiki et confirmez l'import.</p>
+
+<a class="drag" id="drag" draggable="true" href="#" title="$:/config/nikorion/PluginLibrary"><span data-lang="en">⇲ nikorion plugin library</span><span data-lang="fr">⇲ Bibliothèque de plugins nikorion</span></a>
+<div class="hint" data-lang="en">A click does nothing: drag it into your wiki's window.</div>
+<div class="hint" data-lang="fr">Un clic ne fait rien : faites-le glisser dans la fenêtre de votre wiki.</div>
+
+<h3 data-lang="en">Then</h3>
+<h3 data-lang="fr">Ensuite</h3>
+<ol data-lang="en">
+<li>Open <em>Control Panel → Plugins → Get more plugins → Open plugin library</em>.</li>
+<li>A <strong>nikorion</strong> tab lists every plugin below: install the ones you want, then save and reload your wiki.</li>
+<li>Whenever a new version is published, that same screen offers it as an update.</li>
+</ol>
+<ol data-lang="fr">
+<li>Ouvrez <em>Panneau de configuration → Plugins → Obtenir d'autres plugins → Ouvrir la bibliothèque de plugins</em>.</li>
+<li>Un onglet <strong>nikorion</strong> liste tous les plugins ci-dessous : installez ceux que vous voulez, puis enregistrez et rechargez votre wiki.</li>
+<li>À chaque nouvelle version publiée, ce même écran la propose en mise à jour.</li>
+</ol>
+
+<div class="note">
+<span data-lang="en">The button imports a single tiddler, <code>$:/config/nikorion/PluginLibrary</code> (tag <code>$:/tags/PluginLibrary</code>, field <code>url</code> = <code>{{LIBRARY_URL}}</code>). Drag-and-drop not possible? Download <a href="nikorion-plugin-library.json" download>nikorion-plugin-library.json</a> and drop the file onto your wiki, or create that tiddler by hand.</span>
+<span data-lang="fr">Le bouton importe un seul tiddler, <code>$:/config/nikorion/PluginLibrary</code> (tag <code>$:/tags/PluginLibrary</code>, champ <code>url</code> = <code>{{LIBRARY_URL}}</code>). Glisser-déposer impossible ? Téléchargez <a href="nikorion-plugin-library.json" download>nikorion-plugin-library.json</a> et déposez le fichier sur votre wiki, ou créez ce tiddler à la main.</span>
+</div>
+</section>
+
+<section class="tiddler" id="plugins">
+<h2><span data-lang="en">Plugins</span><span data-lang="fr">Plugins</span></h2>
+<div class="subtitle"><span data-lang="en">Each name opens the plugin's live demo.</span><span data-lang="fr">Chaque nom ouvre la démo en ligne du plugin.</span></div>
+<table>
+<thead><tr><th>Plugin</th><th>Version</th><th>Description</th></tr></thead>
+<tbody id="plugin-rows"></tbody>
+</table>
+</section>
+
+</main>
+<aside class="sidebar">
+<h1 class="site-title">nikorion</h1>
+<div class="site-subtitle"><span data-lang="en">TiddlyWiki plugins</span><span data-lang="fr">Plugins TiddlyWiki</span></div>
+<nav>
+<a href="#install"><span data-lang="en">Install the library</span><span data-lang="fr">Installer la bibliothèque</span></a>
+<a href="#plugins">Plugins</a>
+<a href="https://github.com/nikorion/tw-plugins">GitHub</a>
+</nav>
+<div class="lang"><button type="button" data-set-lang="en">English</button> · <button type="button" data-set-lang="fr">Français</button></div>
+</aside>
+</div>
+
+<script>
+var LIBRARY_TIDDLER = {{LIBRARY_TIDDLER}};
+var PLUGINS = {{PLUGINS}};
+
+(function () {
+  // Language: the visitor's choice, else the browser's, else English.
+  var root = document.documentElement;
+  function setLang(lang) {
+    root.lang = lang;
+    document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-set-lang") === lang));
+    });
+  }
+  var saved = null;
+  try { saved = localStorage.getItem("nikorion-lang"); } catch (e) {}
+  setLang(saved || ((navigator.language || "").toLowerCase().indexOf("fr") === 0 ? "fr" : "en"));
+  document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var lang = b.getAttribute("data-set-lang");
+      setLang(lang);
+      try { localStorage.setItem("nikorion-lang", lang); } catch (e) {}
+    });
+  });
+
+  // Drag button: same data TiddlyWiki itself puts on a dragged tiddler link
+  // (core/modules/utils/dom/dragndrop.js), so any TiddlyWiki imports it.
+  var json = JSON.stringify([LIBRARY_TIDDLER]);
+  var dataUri = "data:text/vnd.tiddler," + encodeURIComponent(json);
+  var drag = document.getElementById("drag");
+  drag.href = dataUri;
+  drag.addEventListener("click", function (e) { e.preventDefault(); });
+  drag.addEventListener("dragstart", function (e) {
+    var dt = e.dataTransfer;
+    dt.effectAllowed = "copy";
+    dt.setData("text/vnd.tiddler", json);
+    dt.setData("text/plain", LIBRARY_TIDDLER.title);
+    dt.setData("text/x-moz-url", dataUri);
+    try { dt.setData("URL", dataUri); } catch (err) {}
+  });
+
+  // Plugin list (rendered from the library's own catalogue at build time).
+  var rows = document.getElementById("plugin-rows");
+  PLUGINS.forEach(function (p) {
+    var tr = document.createElement("tr");
+    var name = document.createElement("td");
+    var a = document.createElement("a");
+    a.href = p.demo;
+    a.textContent = p.name;
+    name.appendChild(a);
+    var version = document.createElement("td");
+    version.className = "version";
+    version.textContent = p.version;
+    var description = document.createElement("td");
+    description.textContent = p.description;
+    tr.append(name, version, description);
+    rows.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>
