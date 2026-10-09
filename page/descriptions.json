@@ -1,0 +1,15 @@
+{
+  "fr": {
+    "chart": "Widget intégrant Chart.js",
+    "dyntable": "Dynamic Table : tableaux HTML éditables, triables et paginés, construits à partir d'un filtre",
+    "fonts": "Une collection de polices web autonomes pour TiddlyWiki",
+    "hover-tilt": "Un widget $HoverTilt qui enveloppe le Web Component de hover-tilt, pour un effet 3D d'inclinaison et de reflet sur n'importe quel contenu",
+    "math": "Widget intégrant Math.js",
+    "pkm-fields": "Place les champs du schéma pkm dans le formulaire d'édition des tiddlers, et dans les colonnes de Dynamic Table s'il est installé : listes déroulantes, boutons radio, cases à cocher et sélecteurs, construits d'après la définition de chaque champ",
+    "pkm-schema": "Champs et vocabulaires contrôlés de la suite pkm : définitions, icônes, libellés et traductions, lus par les autres plugins pkm",
+    "plugin-info-tree": "Remplace l'onglet « contents » du panneau d'informations d'un plugin par une vue en arborescence",
+    "scroll-layout": "Zones de défilement isolées : le fil des tiddlers, les onglets de la barre latérale et le contenu des onglets défilent chacun indépendamment",
+    "table": "Static Table : affiche un tableau HTML à partir d'un bloc CSV saisi dans le corps d'un tiddler",
+    "tiny-bootstrap": "Classes CSS utilitaires et de composants de Bootstrap 5, extraites de Shiraz — se désactive d'elle-même si Shiraz est installé"
+  }
+}

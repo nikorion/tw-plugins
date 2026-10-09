@@ -57,37 +57,60 @@ a:hover { text-decoration: underline; }
 code { color: var(--code-foreground); background: var(--code-background); border: 1px solid var(--code-border); padding: 0 3px; border-radius: 3px; font-size: 0.87em; word-break: break-all; }
 .drag {
   display: inline-block;
-  margin: 10px 0 4px;
-  padding: 14px 26px;
-  border-radius: 4px;
-  background: var(--download);
-  color: #ffffff;
+  margin: 10px 0 8px;
+  padding: 14px 28px;
+  border-radius: 6px;
+  /* Light diagonal shading, lit from the top left. */
+  background: linear-gradient(135deg, #5fe05f 0%, #3ccf3c 40%, #2fb92f 70%, #259a25 100%);
+  color: rgba(255, 255, 255, 0.94);
   font-size: 1.25em;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  /* Text pressed into the surface: dark edge above, light edge below. */
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.38), 0 1px 0 rgba(255, 255, 255, 0.28);
+  /* Slight 3D thickness: top highlight, darker side edge, soft drop shadow. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 0 #1e7f1e,
+    0 7px 12px rgba(0, 0, 0, 0.25);
   cursor: grab;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
 }
 .drag:hover { text-decoration: none; filter: brightness(1.05); }
-.drag:active { cursor: grabbing; }
-/* Drag effect: the slot keeps the button's place and shows a hollow shadow
-   while the button itself travels with the pointer (as the drag image). */
-.drag-slot { display: inline-block; position: relative; margin: 10px 0 4px; border-radius: 4px; }
+.drag:active {
+  cursor: grabbing;
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
+    0 2px 0 #1e7f1e,
+    0 4px 8px rgba(0, 0, 0, 0.25);
+}
+/* Drag effect: the slot keeps the button's place and shows a shallow hollow
+   while the button itself travels with the pointer (as the drag image). On
+   release the button rebuilds itself in the hollow, growing to full size. */
+.drag-slot { display: inline-block; position: relative; margin: 10px 0 8px; border-radius: 6px; }
 .drag-slot .drag { margin: 0; position: relative; }
 .drag-slot::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.06);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.28);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.035);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
-.drag-slot.dragging::before { opacity: 1; }
+.drag-slot.dragging::before, .drag-slot.rebuilding::before { opacity: 1; }
 .drag-slot.dragging .drag { visibility: hidden; }
-.drag.landing { transition: transform 0.45s cubic-bezier(0.22, 1.25, 0.36, 1), box-shadow 0.45s ease; }
-.drag.lifted { box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); }
+@keyframes nk-rebuild {
+  0% { transform: scale(0.12); opacity: 0.2; }
+  65% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.drag.rebuild { animation: nk-rebuild 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
 .drag-ghost { position: fixed; top: -1000px; left: -1000px; margin: 0; pointer-events: none; }
 .hint { color: var(--muted); font-size: 0.9em; }
 ol { padding-left: 1.4em; }
@@ -189,13 +212,10 @@ var PLUGINS = {{PLUGINS}};
   drag.href = dataUri;
   drag.addEventListener("click", function (e) { e.preventDefault(); });
   // Visual: the whole button becomes the drag image, grabbed where the pointer
-  // took it; its slot shows a hollow shadow; on release it glides back from the
-  // drop point (or drops in from above when released outside this window).
+  // took it, and its slot shows a shallow hollow; on release the button
+  // rebuilds itself in the hollow, growing from small to full size.
   var slot = document.getElementById("drag-slot");
-  var ghost = null, grab = {x: 0, y: 0}, last = null;
-  function track(e) {
-    if (e.clientX || e.clientY) last = {x: e.clientX, y: e.clientY};
-  }
+  var ghost = null;
   drag.addEventListener("dragstart", function (e) {
     var dt = e.dataTransfer;
     dt.effectAllowed = "copy";
@@ -205,35 +225,26 @@ var PLUGINS = {{PLUGINS}};
     try { dt.setData("URL", dataUri); } catch (err) {}
 
     var rect = drag.getBoundingClientRect();
-    grab = {x: e.clientX - rect.left, y: e.clientY - rect.top};
-    last = {x: e.clientX, y: e.clientY};
     ghost = drag.cloneNode(true);
     ghost.removeAttribute("id");
-    ghost.classList.add("drag-ghost", "lifted");
+    ghost.classList.add("drag-ghost");
     ghost.style.width = rect.width + "px";
     document.body.appendChild(ghost);
-    if (dt.setDragImage) dt.setDragImage(ghost, grab.x, grab.y);
+    if (dt.setDragImage) dt.setDragImage(ghost, e.clientX - rect.left, e.clientY - rect.top);
     // Hide the button only after the browser has captured the drag image.
     setTimeout(function () { slot.classList.add("dragging"); }, 0);
   });
-  drag.addEventListener("drag", track);
-  document.addEventListener("dragover", track);
-  drag.addEventListener("dragend", function (e) {
-    track(e);
+  drag.addEventListener("dragend", function () {
     if (ghost) { ghost.remove(); ghost = null; }
-    var rect = drag.getBoundingClientRect();
-    var inside = last && last.x > 0 && last.y > 0 && last.x < window.innerWidth && last.y < window.innerHeight;
-    var dx = inside ? last.x - grab.x - rect.left : 0;
-    var dy = inside ? last.y - grab.y - rect.top : -40;
-    drag.classList.remove("landing");
-    drag.classList.add("lifted");
-    drag.style.transform = "translate(" + dx + "px," + dy + "px)" + (inside ? "" : " scale(1.06)");
+    drag.classList.remove("rebuild");
+    slot.classList.add("rebuilding"); // the hollow stays while the button regrows in it
     slot.classList.remove("dragging");
-    void drag.offsetWidth; // apply the start position before animating
-    drag.classList.add("landing");
-    drag.classList.remove("lifted");
-    drag.style.transform = "";
-    setTimeout(function () { drag.classList.remove("landing"); }, 500);
+    void drag.offsetWidth; // restart the animation
+    drag.classList.add("rebuild");
+  });
+  drag.addEventListener("animationend", function () {
+    drag.classList.remove("rebuild");
+    slot.classList.remove("rebuilding");
   });
 
   // Plugin list (rendered from the library's own catalogue at build time).
@@ -249,7 +260,14 @@ var PLUGINS = {{PLUGINS}};
     version.className = "version";
     version.textContent = p.version;
     var description = document.createElement("td");
-    description.textContent = p.description;
+    // One span per page language (hidden by CSS unless it is the current one),
+    // English when a translation is missing.
+    ["en", "fr"].forEach(function (lang) {
+      var span = document.createElement("span");
+      span.setAttribute("data-lang", lang);
+      span.textContent = p.description[lang] || p.description.en;
+      description.appendChild(span);
+    });
     tr.append(name, version, description);
     rows.appendChild(tr);
   });

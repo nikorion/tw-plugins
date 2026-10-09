@@ -9,7 +9,7 @@ Glisser une fois le bouton de cette page sur votre wiki ; *Panneau de configurat
 ## Ce que construit ce dépôt
 
 - `library/tiddlywiki.info` : la bibliothèque de plugins (`docs/library/`), tous les plugins listés dans le `plugins.json` de [tw-dev](https://github.com/nikorion/tw-dev) sauf `detect-language` (interne), chacun pris sur la branche par défaut de son dépôt.
-- `page/` : la page d'accueil (`docs/index.html`, au style des wikis de démo, en anglais ou en français selon le navigateur) et le tiddler d'abonnement en fichier (`docs/nikorion-plugin-library.json`). `build.cjs` lit les noms, versions et descriptions des plugins dans le catalogue de la bibliothèque elle-même.
+- `page/` : la page d'accueil (`docs/index.html`, au style des wikis de démo, en anglais ou en français selon le navigateur) et le tiddler d'abonnement en fichier (`docs/nikorion-plugin-library.json`). `build.cjs` lit les noms, versions et descriptions anglaises des plugins dans le catalogue de la bibliothèque elle-même ; les autres langues viennent de `page/descriptions.json`, écrit à la main (à compléter pour chaque nouveau plugin ou description modifiée).
 - `.github/workflows/publish.yml` : construit les deux et les publie sur GitHub Pages à chaque push, chaque nuit et à la demande (Actions → Run workflow) : une nouvelle version de plugin y apparaît en moins d'un jour.
 
 **Build local**

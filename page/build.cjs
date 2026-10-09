@@ -21,13 +21,22 @@ const LIBRARY_URL = SITE + "library/index.html";
 const repos = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 const catalogue = JSON.parse(fs.readFileSync(path.join(DOCS, "library/recipes/library/tiddlers.json"), "utf8"));
 
+// Descriptions in other languages, written by hand here (plugin.info only
+// carries the English one). A missing entry falls back to English.
+const translations = JSON.parse(fs.readFileSync(path.join(__dirname, "descriptions.json"), "utf8"));
+
 const plugins = catalogue
   .map((p) => {
     const short = p.title.replace("$:/plugins/nikorion/", "");
+    const description = { en: p.description || "" };
+    for (const lang of Object.keys(translations)) {
+      if (translations[lang][short]) description[lang] = translations[lang][short];
+      else process.stderr.write(`warning: no ${lang} description for ${short} (English shown)\n`);
+    }
     return {
       name: p.name || short,
       version: p.version || "",
-      description: p.description || "",
+      description,
       demo: repos[short] ? `https://nikorion.github.io/${repos[short]}/` : SITE,
     };
   })
